@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/uno-frontend/static/js/main.6bb25568.js",
-    "index.html": "/uno-frontend/index.html",
-    "main.6bb25568.js.map": "/uno-frontend/static/js/main.6bb25568.js.map"
+    "main.js": "/UNO-Mobile-Frontend/static/js/main.81f29aac.js",
+    "index.html": "/UNO-Mobile-Frontend/index.html",
+    "main.81f29aac.js.map": "/UNO-Mobile-Frontend/static/js/main.81f29aac.js.map"
   },
   "entrypoints": [
-    "static/js/main.6bb25568.js"
+    "static/js/main.81f29aac.js"
   ]
 }
