@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/uno-frontend/static/js/main.6bb25568.js",
+    "index.html": "/uno-frontend/index.html",
+    "main.6bb25568.js.map": "/uno-frontend/static/js/main.6bb25568.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.6bb25568.js"
+  ]
+}
