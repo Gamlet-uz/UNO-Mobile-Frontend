@@ -1,10 +1,13 @@
 {
   "files": {
-    "main.js": "/UNO-Mobile-Frontend/static/js/main.81f29aac.js",
+    "main.css": "/UNO-Mobile-Frontend/static/css/main.156c5a55.css",
+    "main.js": "/UNO-Mobile-Frontend/static/js/main.51efe498.js",
     "index.html": "/UNO-Mobile-Frontend/index.html",
-    "main.81f29aac.js.map": "/UNO-Mobile-Frontend/static/js/main.81f29aac.js.map"
+    "main.156c5a55.css.map": "/UNO-Mobile-Frontend/static/css/main.156c5a55.css.map",
+    "main.51efe498.js.map": "/UNO-Mobile-Frontend/static/js/main.51efe498.js.map"
   },
   "entrypoints": [
-    "static/js/main.81f29aac.js"
+    "static/css/main.156c5a55.css",
+    "static/js/main.51efe498.js"
   ]
 }
