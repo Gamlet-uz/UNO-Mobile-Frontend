@@ -1,58 +1,89 @@
 import React, { useEffect, useState } from 'react';
-import { db } from './firebase'; // Bazaga tayyor ulanish
-import { ref, onValue } from 'firebase/database'; // Keyinchalik kartalarni o'qish uchun
+import './App.css'; // Yangi yozgan dizaynimizni ulash
+import { db } from './firebase';
 
 function App() {
   const [tgUser, setTgUser] = useState(null);
+  const [activeView, setActiveView] = useState('lobby'); // 'lobby', 'classic', 'wild', 'friends'
 
   useEffect(() => {
-    // Ilova Telegram ichida ochilganini tekshiramiz
     const tg = window.Telegram?.WebApp;
-    
     if (tg) {
       tg.ready();
-      tg.expand(); // Ilovani to'liq ekranga yoyish
-      
-      // Bot qora/oq temada bo'lsa, fonni to'g'irlash
-      tg.setHeaderColor('#1a472a');
-      tg.setBackgroundColor('#1a472a');
-
-      // Foydalanuvchi ma'lumotlarini saqlash
+      tg.expand();
+      tg.setHeaderColor('#1b5e20');
+      tg.setBackgroundColor('#1b5e20');
       if (tg.initDataUnsafe?.user) {
         setTgUser(tg.initDataUnsafe.user);
       }
     }
   }, []);
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
-      <h1 style={{ color: '#ffcc00', textShadow: '2px 2px 4px #000' }}>UNO</h1>
-      
-      {tgUser ? (
-        <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.5)', padding: '15px', borderRadius: '15px', width: '90%' }}>
-          <p style={{ margin: 0, fontSize: '18px' }}>O'yinchi: <b>{tgUser.first_name}</b></p>
-          <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#ccc' }}>ID: {tgUser.id}</p>
-        </div>
-      ) : (
-        <p style={{ color: '#ffaaaa' }}>Iltimos, ilovani Telegram bot orqali oching.</p>
-      )}
+  // Rejim tanlanganda ishlaydigan funksiya
+  const handleModeSelect = (mode) => {
+    // Hozircha bosilganda sahifa o'zgaradi. Keyinchalik shu yerga Firebase'dan xona ochish kodini yozamiz.
+    setActiveView(mode);
+  };
 
-      <div style={{ 
-        marginTop: '30px', 
-        width: '100%', 
-        height: '300px', 
-        border: '3px dashed rgba(255, 255, 255, 0.3)', 
-        borderRadius: '20px',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexDirection: 'column'
-      }}>
-        <h2 style={{ color: 'rgba(255, 255, 255, 0.5)' }}>O'yin Stoli</h2>
-        <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '14px', textAlign: 'center', padding: '0 20px' }}>
-          Yaqinda bu yerda kartalar va raqiblar paydo bo'ladi.
-        </p>
+  // Asosiy menyu (3 ta kartochka)
+  const renderLobby = () => (
+    <div className="modes-container">
+      {/* 1. Classic Mode */}
+      <div className="mode-card classic-mode" onClick={() => handleModeSelect('classic')}>
+        <div className="card-content">
+          <h2>Classic Mode</h2>
+          <p>An'anaviy qoidalar</p>
+        </div>
+        <div className="card-icon">🃏</div>
       </div>
+
+      {/* 2. Go Wild */}
+      <div className="mode-card wild-mode" onClick={() => handleModeSelect('wild')}>
+        <div className="card-content">
+          <h2>Go Wild</h2>
+          <p>Ko'proq Maxsus Kartalar</p>
+        </div>
+        <div className="card-icon">🌀</div>
+      </div>
+
+      {/* 3. Play with Friends */}
+      <div className="mode-card friends-mode" onClick={() => handleModeSelect('friends')}>
+        <div className="card-content">
+          <h2>Play with Friends</h2>
+          <p>Do'stlar bilan xususiy xona</p>
+        </div>
+        <div className="card-icon">👥</div>
+      </div>
+    </div>
+  );
+
+  // Tanlangan o'yin stoli (Keyingi bosqichda shu yerni to'ldiramiz)
+  const renderGameRoom = () => (
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h2>{activeView.toUpperCase()} MODE</h2>
+      <p>O'yin stoli yuklanmoqda...</p>
+      <button 
+        style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#fff', color: '#333', marginTop: '20px', fontWeight: 'bold' }}
+        onClick={() => setActiveView('lobby')}
+      >
+        Orqaga qaytish
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="uno-container">
+      {/* Har doim tepada turadigan qism */}
+      <div className="header-section">
+        <h1 className="uno-logo">UNO</h1>
+        <div className="user-badge">
+          {tgUser ? `👤 ${tgUser.first_name}` : '👤 Mehmon'}
+        </div>
+      </div>
+
+      {/* Holatga qarab yo Menyu yoki O'yin stolini ko'rsatamiz */}
+      {activeView === 'lobby' ? renderLobby() : renderGameRoom()}
+      
     </div>
   );
 }
