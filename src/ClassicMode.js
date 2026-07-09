@@ -11,7 +11,6 @@ function ClassicMode({ tgUser, onBack }) {
   useEffect(() => {
     if (!tgUser) return;
     
-    // 1. Bo'sh xona qidirish yoki yangisini yaratish
     const findOrCreateRoom = async () => {
       const roomsRef = ref(db, 'rooms');
       const snapshot = await get(roomsRef);
@@ -31,9 +30,7 @@ function ClassicMode({ tgUser, onBack }) {
         foundRoomId = 'room_' + Math.floor(Math.random() * 100000);
         await set(ref(db, `rooms/${foundRoomId}`), {
           status: 'waiting',
-          players: {
-            [tgUser.id]: { name: tgUser.first_name, cards: [] }
-          }
+          players: { [tgUser.id]: { name: tgUser.first_name, cards: [] } }
         });
       } else {
         await update(ref(db, `rooms/${foundRoomId}/players/${tgUser.id}`), {
@@ -41,7 +38,6 @@ function ClassicMode({ tgUser, onBack }) {
           cards: []
         });
       }
-
       setRoomId(foundRoomId);
     };
 
@@ -49,24 +45,18 @@ function ClassicMode({ tgUser, onBack }) {
   }, [tgUser]);
 
   useEffect(() => {
-    // 2. Xonadagi o'zgarishlarni jonli kuzatish
     if (!roomId) return;
-
     const roomRef = ref(db, `rooms/${roomId}`);
     const unsubscribe = onValue(roomRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         setRoomData(data);
-        if (data.status === 'playing') {
-          setIsMatching(false);
-        }
+        if (data.status === 'playing') setIsMatching(false);
       }
     });
-
     return () => unsubscribe();
   }, [roomId]);
 
-  // Karta rangini CSS klassiga o'tkazish uchun yordamchi funksiya
   const getCardClass = (color) => {
     switch (color) {
       case 'red': return 'card-red';
@@ -78,7 +68,6 @@ function ClassicMode({ tgUser, onBack }) {
     }
   };
 
-  // Karta yozuvini (ikonkasini) chiroyli chiqarish uchun
   const getCardDisplayValue = (value) => {
     if (value === 'wild') return 'W';
     if (value === 'wild4') return '+4';
@@ -88,17 +77,98 @@ function ClassicMode({ tgUser, onBack }) {
     return value;
   };
 
-  // --- 1. KUTISH EKRANI ---
+  // ==========================================
+  // O'YIN MANTIQI (Navbat, Tashlash, Olish)
+  // ==========================================
+  
+  const currentTurn = roomData?.current_turn;
+  const isMyTurn = currentTurn == tgUser?.id;
+
+  // 1. Karta tashlash
+  const handlePlayCard = async (card, index) => {
+    if (!isMyTurn) return; // Navbat bizniki bo'lmasa ishlamaydi
+
+    const centerCard = roomData.current_card;
+    
+    // Qoida tekshiruvi: Rangi bir xil, Raqami bir xil yoki Qora karta bo'lishi kerak
+    const isValid = card.color === 'black' || card.color === centerCard.color || card.value === centerCard.value;
+    
+    if (!isValid) {
+      // (Kelajakda bu yerga qizil rangda titrash effektini qo'shamiz)
+      return; 
+    }
+
+    // Qo'limizdan kartani olib tashlaymiz
+    const myCards = [...roomData.players[tgUser.id].cards];
+    myCards.splice(index, 1);
+
+    // Navbatni hisoblash
+    const playerIds = Object.keys(roomData.players);
+    const currentIndex = playerIds.indexOf(tgUser.id);
+    let direction = roomData.direction || 1;
+
+    // Agar REVERSE tashlansa, yo'nalish o'zgaradi
+    if (card.value === 'reverse') {
+      direction = direction * -1;
+    }
+
+    let nextIndex = (currentIndex + direction) % playerIds.length;
+    if (nextIndex < 0) nextIndex += playerIds.length;
+    
+    // Agar SKIP tashlansa, yana bitta odam sakrab o'tiladi
+    if (card.value === 'skip') {
+      nextIndex = (nextIndex + direction) % playerIds.length;
+      if (nextIndex < 0) nextIndex += playerIds.length;
+    }
+    
+    const nextTurnId = playerIds[nextIndex];
+
+    // Baza (Firebase) ni yangilash
+    const updates = {};
+    updates[`rooms/${roomId}/current_card`] = card;
+    updates[`rooms/${roomId}/current_turn`] = nextTurnId;
+    updates[`rooms/${roomId}/direction`] = direction;
+    updates[`rooms/${roomId}/players/${tgUser.id}/cards`] = myCards;
+
+    await update(ref(db), updates);
+  };
+
+  // 2. Kolodadan karta olish (Draw)
+  const handleDrawCard = async () => {
+    if (!isMyTurn) return;
+
+    const deck = roomData.deck || [];
+    if (deck.length === 0) return; // Agar baza kolodasi bo'shab qolsa
+
+    const drawnCard = deck[0]; // Eng tepadagi kartani olamiz
+    const newDeck = deck.slice(1); // Kolodani bittaga kamaytiramiz
+    const myCards = [...roomData.players[tgUser.id].cards, drawnCard];
+
+    // Karta olgach navbat keyingi odamga o'tadi
+    const playerIds = Object.keys(roomData.players);
+    const currentIndex = playerIds.indexOf(tgUser.id);
+    const direction = roomData.direction || 1;
+    let nextIndex = (currentIndex + direction) % playerIds.length;
+    if (nextIndex < 0) nextIndex += playerIds.length;
+    const nextTurnId = playerIds[nextIndex];
+
+    const updates = {};
+    updates[`rooms/${roomId}/deck`] = newDeck;
+    updates[`rooms/${roomId}/players/${tgUser.id}/cards`] = myCards;
+    updates[`rooms/${roomId}/current_turn`] = nextTurnId;
+
+    await update(ref(db), updates);
+  };
+
+  // --- KUTISH EKRANI ---
   if (isMatching) {
     const playersCount = roomData && roomData.players ? Object.keys(roomData.players).length : 1;
-    
     return (
       <div className="classic-container">
         <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between' }}>
           <b onClick={onBack} style={{ cursor: 'pointer', fontSize: '20px' }}>⬅ CLASSIC</b>
           <b>{playersCount}/4</b>
         </div>
-        
         <div className="matchmaking-screen">
           <div className="players-slots">
             <div className="slot filled">
@@ -108,13 +178,8 @@ function ClassicMode({ tgUser, onBack }) {
             {[...Array(3)].map((_, i) => (
               <div key={i} className="slot">
                 {i < (playersCount - 1) ? (
-                  <>
-                    <div className="slot-avatar" style={{background: '#ff5555'}}>Raqib</div>
-                    <b>Ready</b>
-                  </>
-                ) : (
-                  'Matching..'
-                )}
+                  <><div className="slot-avatar" style={{background: '#ff5555'}}>Raqib</div><b>Ready</b></>
+                ) : ('Matching..')}
               </div>
             ))}
           </div>
@@ -124,11 +189,9 @@ function ClassicMode({ tgUser, onBack }) {
     );
   }
 
-  // --- 2. ASOSIY O'YIN EKRANI ---
+  // --- ASOSIY O'YIN EKRANI ---
   const myCards = roomData?.players?.[tgUser?.id]?.cards || [];
   const centerCard = roomData?.current_card;
-  const currentTurn = roomData?.current_turn;
-  const isMyTurn = currentTurn == tgUser?.id;
 
   return (
     <div className="classic-container">
@@ -136,7 +199,7 @@ function ClassicMode({ tgUser, onBack }) {
         <div className="globe-table"></div>
         <div className="uno-center-text">UNO</div>
 
-        {/* Raqiblar (Hozircha vizual, keyinchalik aniq o'yinchilarga bog'laymiz) */}
+        {/* Raqiblar */}
         <div className="player-pos player-top">
           <div className="mini-avatar"></div>
           <div className="hand opponent-hand-top">
@@ -156,39 +219,50 @@ function ClassicMode({ tgUser, onBack }) {
           </div>
         </div>
 
-        {/* Markazdagi tashlangan karta */}
-        {centerCard && (
-          <div className="center-pile">
-            <div className={`uno-card ${getCardClass(centerCard.color)}`}>
-              {/* Oq ellipsni to'g'ri ishlashi uchun span qo'shildi */}
+        {/* Markaziy O'yin Stoli (Markaziy Karta va Koloda) */}
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', gap: '30px', alignItems: 'center', zIndex: 15 }}>
+          
+          {/* Tashlangan Karta */}
+          {centerCard && (
+            <div className={`uno-card ${getCardClass(centerCard.color)}`} style={{ transform: 'rotate(10deg)', margin: 0, width: '70px', height: '105px', fontSize: '45px' }}>
               <span className="uno-card-value">{getCardDisplayValue(centerCard.value)}</span>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* O'zimizning HAQIQIY kartalarimiz (Yelpig'ich dizaynida) */}
+          {/* Karta olish uchun Koloda (Deck) */}
+          <div 
+            onClick={handleDrawCard}
+            className="uno-card-back" 
+            style={{ width: '70px', height: '105px', cursor: isMyTurn ? 'pointer' : 'not-allowed', boxShadow: isMyTurn ? '0 0 15px #ffcc00' : '2px 2px 5px rgba(0,0,0,0.5)', transform: isMyTurn ? 'scale(1.05)' : 'scale(1)' }}
+          ></div>
+        </div>
+
+        {/* O'zimizning HAQIQIY kartalarimiz */}
         <div className="my-hand">
           {myCards.map((card, index) => {
-            // Yelpig'ich effektini hisoblash
             const totalCards = myCards.length;
             const midPoint = (totalCards - 1) / 2;
             const offset = index - midPoint; 
-            const angle = offset * 6; // Har bir karta 6 gradusga buriladi
-            const yTranslate = Math.abs(offset) * 3; // Chetkalar biroz pastga tushadi
-            
-            const turnBoost = isMyTurn ? -15 : 0; // Navbat kelganda hamma karta biroz tepaga chiqadi
+            const angle = offset * 6; 
+            const yTranslate = Math.abs(offset) * 3; 
+            const turnBoost = isMyTurn ? -15 : 0; 
+
+            // Navbat bizda bo'lsa va karta to'g'ri kelsa uni yorqinroq ko'rsatamiz
+            const isValid = card.color === 'black' || card.color === centerCard?.color || card.value === centerCard?.value;
+            const cardOpacity = isMyTurn && !isValid ? 0.7 : 1;
 
             return (
               <div 
                 key={index} 
+                onClick={() => handlePlayCard(card, index)}
                 className={`uno-card ${getCardClass(card.color)}`}
                 style={{
                   transform: `rotate(${angle}deg) translateY(${turnBoost + yTranslate}px)`, 
-                  zIndex: index, // O'ngdagi karta doim chapdagining ustiga chiqadi
-                  boxShadow: isMyTurn ? '0 0 10px rgba(255,255,255,0.3)' : '-3px 5px 10px rgba(0,0,0,0.5)'
+                  zIndex: index, 
+                  boxShadow: isMyTurn ? '0 0 10px rgba(255,255,255,0.3)' : '-3px 5px 10px rgba(0,0,0,0.5)',
+                  opacity: cardOpacity
                 }}
               >
-                {/* Oq ellipsni to'g'ri ishlashi uchun span qo'shildi */}
                 <span className="uno-card-value">{getCardDisplayValue(card.value)}</span>
               </div>
             );
