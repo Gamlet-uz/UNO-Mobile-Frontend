@@ -1,0 +1,222 @@
+/* --- UMUMIY Fոն VA KUTISH OYNASI (Matchmaking) --- */
+.classic-container {
+  width: 100vw;
+  height: 100vh;
+  background-color: #1a82d2; /* UNO Ochiq ko'k foni */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'ArialRoundedMTBold', sans-serif;
+  color: white;
+  position: relative;
+}
+
+.matchmaking-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.players-slots {
+  display: flex;
+  gap: 15px;
+  margin-top: 50px;
+}
+
+.slot {
+  width: 80px;
+  height: 100px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.slot.filled {
+  background: transparent;
+  border: none;
+}
+
+.slot-avatar {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(180deg, #a4e500, #5da300);
+  border-radius: 15px;
+  border: 3px solid #ffcc00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+}
+
+.tips-box {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px 30px;
+  border-radius: 20px;
+  margin-top: auto;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* --- O'YIN STOLI (Globe) --- */
+.game-screen {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  perspective: 1000px; /* 3D effekt poydevori */
+}
+
+/* Yer shari ko'rinishidagi yashil stol */
+.globe-table {
+  position: absolute;
+  bottom: -20%;
+  left: -20%;
+  width: 140%;
+  height: 80%;
+  background: radial-gradient(circle at 50% 20%, #95d31b 0%, #529605 60%, #1f4a00 100%);
+  border-radius: 50% 50% 0 0;
+  box-shadow: inset 0 20px 50px rgba(255,255,255,0.3), 0 -10px 30px rgba(0,0,0,0.5);
+  z-index: 1;
+}
+
+.uno-center-text {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotateX(40deg);
+  font-size: 100px;
+  font-weight: 900;
+  color: rgba(100, 180, 20, 0.8);
+  text-shadow: 0 10px 0 rgba(50, 100, 10, 0.8);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* --- O'YINCHILAR JOYLASHUVI --- */
+.player-pos {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.player-bottom { bottom: 20px; left: 50%; transform: translateX(-50%); }
+.player-top { top: 20px; left: 50%; transform: translateX(-50%); }
+.player-left { top: 40%; left: 10px; transform: translateY(-50%); }
+.player-right { top: 40%; right: 10px; transform: translateY(-50%); }
+
+.mini-avatar {
+  width: 50px;
+  height: 50px;
+  background: #fff;
+  border-radius: 12px;
+  border: 2px solid #ffcc00;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+}
+
+/* --- KARTALAR --- */
+.hand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* O'zimizning kartalarimiz (Pastda) */
+.my-hand {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  gap: -20px; /* Kartalar ustma-ust tushishi uchun */
+}
+
+.uno-card {
+  width: 65px;
+  height: 95px;
+  background: white;
+  border-radius: 8px;
+  border: 3px solid white;
+  box-shadow: -2px 5px 10px rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40px;
+  font-weight: 900;
+  margin-left: -25px; /* Kartalar yelpig'ichdek yopishishi uchun */
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+.uno-card:first-child { margin-left: 0; }
+.uno-card:hover { transform: translateY(-15px) scale(1.1); }
+
+/* Karta ranglari */
+.card-red { background: #ff0000; color: white; text-shadow: 2px 2px 0 #000; }
+.card-yellow { background: #ffaa00; color: white; text-shadow: 2px 2px 0 #000; }
+.card-green { background: #55aa00; color: white; text-shadow: 2px 2px 0 #000; }
+.card-blue { background: #0055ff; color: white; text-shadow: 2px 2px 0 #000; }
+.card-black { background: #222; color: white; }
+
+/* Raqiblarning teskari kartalari */
+.opponent-hand-top .uno-card-back { width: 35px; height: 50px; margin-left: -15px; }
+.opponent-hand-left .uno-card-back { width: 35px; height: 50px; margin-top: -20px; transform: rotate(90deg); }
+.opponent-hand-right .uno-card-back { width: 35px; height: 50px; margin-top: -20px; transform: rotate(-90deg); }
+
+.uno-card-back {
+  background: black;
+  border: 2px solid white;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+  background-image: radial-gradient(circle, #ff0000 20%, #aa0000 100%);
+}
+
+/* --- MARKAZDAGI KARTA VA TUGMALAR --- */
+.center-pile {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(15deg);
+  z-index: 15;
+}
+
+.center-pile .uno-card {
+  width: 80px;
+  height: 120px;
+  margin: 0;
+  font-size: 60px;
+}
+
+.call-uno-btn {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, #ff4444 0%, #cc0000 100%);
+  border: 4px solid white;
+  border-radius: 50%;
+  color: white;
+  font-weight: 900;
+  font-size: 16px;
+  box-shadow: 0 8px 0 #880000, 0 15px 20px rgba(0,0,0,0.5);
+  z-index: 30;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1;
+}
+.call-uno-btn:active {
+  transform: translateY(8px);
+  box-shadow: 0 0px 0 #880000, 0 5px 10px rgba(0,0,0,0.5);
+}
