@@ -1,0 +1,138 @@
+/* Asosiy fon va o'yin stoli */
+.uno-container {
+  min-height: 100vh;
+  background: radial-gradient(circle at center, #2e7d32 0%, #1b5e20 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: 'ArialRoundedMTBold', 'Segoe UI', sans-serif;
+  overflow: hidden;
+  color: white;
+}
+
+/* Tepadagi logotip va ism qismi */
+.header-section {
+  animation: slideDown 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.uno-logo {
+  font-size: 50px;
+  font-weight: 900;
+  color: #ffcc00;
+  text-shadow: 4px 4px 0px #d32f2f, 0 0 20px rgba(255, 204, 0, 0.5);
+  margin: 10px 0;
+  letter-spacing: 2px;
+}
+
+.user-badge {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 3 ta Kartochka (Rejimlar) uchun konteyner */
+.modes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px;
+  perspective: 1000px; /* 3D effekt uchun */
+}
+
+/* Har bir kartochkaning umumiy stili */
+.mode-card {
+  height: 120px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 25px;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3), inset 0 3px 0 rgba(255,255,255,0.3);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0); /* High-refresh-rate ekranlar uchun apparat tezlatgich */
+  will-change: transform;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: slideUp 0.6s ease forwards;
+  opacity: 0;
+}
+
+.mode-card:active {
+  transform: scale(0.95);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+}
+
+.card-content h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+}
+
+.card-content p {
+  margin: 5px 0 0 0;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.card-icon {
+  font-size: 45px;
+  filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Alohida rejimlar dizayni */
+.classic-mode {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  border: 2px solid #ff7961;
+  animation-delay: 0.2s;
+}
+
+.wild-mode {
+  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+  border: 2px solid #d05ce3;
+  animation-delay: 0.4s;
+}
+
+.friends-mode {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  border: 2px solid #64b5f6;
+  animation-delay: 0.6s;
+}
+
+/* Orqa fondagi UNO bezaklari */
+.mode-card::after {
+  content: "UNO";
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  font-size: 80px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.1);
+  transform: rotate(-15deg);
+  pointer-events: none;
+}
+
+/* Animatsiyalar */
+@keyframes slideDown {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(5deg); }
+}
