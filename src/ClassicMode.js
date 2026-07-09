@@ -11,7 +11,7 @@ function ClassicMode({ tgUser, onBack }) {
   useEffect(() => {
     if (!tgUser) return;
     
-    // 1. Firebase'dan bo'sh xona qidirish yoki yangisini yaratish
+    // 1. Bo'sh xona qidirish yoki yangisini yaratish
     const findOrCreateRoom = async () => {
       const roomsRef = ref(db, 'rooms');
       const snapshot = await get(roomsRef);
@@ -20,7 +20,6 @@ function ClassicMode({ tgUser, onBack }) {
       if (snapshot.exists()) {
         const rooms = snapshot.val();
         for (const [id, room] of Object.entries(rooms)) {
-          // Agar xona kutish rejimida bo'lsa va 4 kishidan kam bo'lsa
           if (room.status === 'waiting' && Object.keys(room.players || {}).length < 4) {
             foundRoomId = id;
             break;
@@ -29,7 +28,6 @@ function ClassicMode({ tgUser, onBack }) {
       }
 
       if (!foundRoomId) {
-        // Yangi xona yaratish
         foundRoomId = 'room_' + Math.floor(Math.random() * 100000);
         await set(ref(db, `rooms/${foundRoomId}`), {
           status: 'waiting',
@@ -38,7 +36,6 @@ function ClassicMode({ tgUser, onBack }) {
           }
         });
       } else {
-        // Mavjud xonaga qo'shilish
         await update(ref(db, `rooms/${foundRoomId}/players/${tgUser.id}`), {
           name: tgUser.first_name,
           cards: []
@@ -52,7 +49,7 @@ function ClassicMode({ tgUser, onBack }) {
   }, [tgUser]);
 
   useEffect(() => {
-    // 2. Xonadagi o'zgarishlarni jonli kuzatish (Real-time listener)
+    // 2. Xonadagi o'zgarishlarni jonli kuzatish
     if (!roomId) return;
 
     const roomRef = ref(db, `rooms/${roomId}`);
@@ -60,26 +57,40 @@ function ClassicMode({ tgUser, onBack }) {
       const data = snapshot.val();
       if (data) {
         setRoomData(data);
-        
-        const playerCount = Object.keys(data.players || {}).length;
-        
-        // Agar 4 kishi yig'ilsa, o'yinni boshlash (statusni o'zgartirish)
-        if (playerCount === 4 && data.status === 'waiting') {
-          update(ref(db, `rooms/${roomId}`), { status: 'playing' });
-        }
-        
         if (data.status === 'playing') {
           setIsMatching(false);
         }
       }
     });
 
-    return () => unsubscribe(); // Komponent yopilganda ulanishni uzish
+    return () => unsubscribe();
   }, [roomId]);
 
-  // --- 1. KUTISH EKRANI (Matchmaking) ---
+  // Karta rangini CSS klassiga o'tkazish uchun yordamchi funksiya
+  const getCardClass = (color) => {
+    switch (color) {
+      case 'red': return 'card-red';
+      case 'yellow': return 'card-yellow';
+      case 'green': return 'card-green';
+      case 'blue': return 'card-blue';
+      case 'black': return 'card-black';
+      default: return '';
+    }
+  };
+
+  // Karta yozuvini (ikonkasini) chiroyli chiqarish uchun
+  const getCardDisplayValue = (value) => {
+    if (value === 'wild') return 'W';
+    if (value === 'wild4') return '+4';
+    if (value === 'skip') return '⊘';
+    if (value === 'reverse') return '⇄';
+    if (value === 'draw2') return '+2';
+    return value;
+  };
+
+  // --- 1. KUTISH EKRANI ---
   if (isMatching) {
-    const playersCount = roomData ? Object.keys(roomData.players).length : 1;
+    const playersCount = roomData && roomData.players ? Object.keys(roomData.players).length : 1;
     
     return (
       <div className="classic-container">
@@ -90,12 +101,10 @@ function ClassicMode({ tgUser, onBack }) {
         
         <div className="matchmaking-screen">
           <div className="players-slots">
-            {/* O'zimiz */}
             <div className="slot filled">
               <div className="slot-avatar">UNO</div>
               <b>{tgUser?.first_name}</b>
             </div>
-            {/* Raqiblar (Bo'sh joylar) */}
             {[...Array(3)].map((_, i) => (
               <div key={i} className="slot">
                 {i < (playersCount - 1) ? (
@@ -115,52 +124,70 @@ function ClassicMode({ tgUser, onBack }) {
     );
   }
 
-  // --- 2. ASOSIY O'YIN EKRANI (Globe) ---
+  // --- 2. ASOSIY O'YIN EKRANI ---
+  const myCards = roomData?.players?.[tgUser?.id]?.cards || [];
+  const centerCard = roomData?.current_card;
+  const currentTurn = roomData?.current_turn;
+  const isMyTurn = currentTurn == tgUser?.id;
+
   return (
     <div className="classic-container">
       <div className="game-screen">
-        {/* Yer shari */}
         <div className="globe-table"></div>
         <div className="uno-center-text">UNO</div>
 
-        {/* Tepadagi raqib */}
+        {/* Raqiblar (Hozircha vizual, keyinchalik aniq o'yinchilarga bog'laymiz) */}
         <div className="player-pos player-top">
           <div className="mini-avatar"></div>
           <div className="hand opponent-hand-top">
-             {[...Array(5)].map((_,i) => <div key={i} className="uno-card-back"></div>)}
+             {[...Array(7)].map((_,i) => <div key={i} className="uno-card-back"></div>)}
           </div>
         </div>
-
-        {/* Chapdagi raqib */}
         <div className="player-pos player-left">
           <div className="mini-avatar"></div>
           <div style={{display:'flex', flexDirection:'column'}} className="hand opponent-hand-left">
-             {[...Array(5)].map((_,i) => <div key={i} className="uno-card-back"></div>)}
+             {[...Array(7)].map((_,i) => <div key={i} className="uno-card-back"></div>)}
           </div>
         </div>
-
-        {/* O'ngdagi raqib */}
         <div className="player-pos player-right">
           <div className="mini-avatar"></div>
           <div style={{display:'flex', flexDirection:'column'}} className="hand opponent-hand-right">
-             {[...Array(5)].map((_,i) => <div key={i} className="uno-card-back"></div>)}
+             {[...Array(7)].map((_,i) => <div key={i} className="uno-card-back"></div>)}
           </div>
         </div>
 
-        {/* Markazdagi tashlangan karta (Namuna) */}
-        <div className="center-pile">
-          <div className="uno-card card-yellow">9</div>
-        </div>
+        {/* Markazdagi tashlangan karta */}
+        {centerCard && (
+          <div className="center-pile">
+            <div className={`uno-card ${getCardClass(centerCard.color)}`}>
+              {getCardDisplayValue(centerCard.value)}
+            </div>
+          </div>
+        )}
 
-        {/* O'zimizning kartalarimiz (Namuna) */}
+        {/* O'zimizning HAQIQIY kartalarimiz */}
         <div className="my-hand">
-          <div className="uno-card card-black">+4</div>
-          <div className="uno-card card-yellow">2</div>
-          <div className="uno-card card-green">8</div>
-          <div className="uno-card card-blue">8</div>
+          {myCards.map((card, index) => (
+            <div 
+              key={index} 
+              className={`uno-card ${getCardClass(card.color)}`}
+              style={{
+                transform: isMyTurn ? 'translateY(-10px)' : 'none', 
+                boxShadow: isMyTurn ? '0 0 15px rgba(255,255,255,0.5)' : 'none'
+              }}
+            >
+              {getCardDisplayValue(card.value)}
+            </div>
+          ))}
         </div>
 
-        {/* CALL UNO Tugmasi */}
+        {/* Navbat ko'rsatkichi */}
+        {isMyTurn && (
+          <div style={{ position: 'absolute', bottom: '130px', left: '50%', transform: 'translateX(-50%)', zIndex: 30, background: 'rgba(0,0,0,0.6)', padding: '5px 15px', borderRadius: '15px' }}>
+            Sizning navbatingiz!
+          </div>
+        )}
+
         <div className="call-uno-btn">CALL<br/>UNO</div>
       </div>
     </div>
