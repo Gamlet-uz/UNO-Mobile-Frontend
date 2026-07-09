@@ -1,4 +1,4 @@
-/* --- UMUMIY Fոն VA KUTISH OYNASI (Matchmaking) --- */
+/* --- UMUMIY FON VA KUTISH OYNASI (Matchmaking) --- */
 .classic-container {
   width: 100vw;
   height: 100vh;
@@ -123,7 +123,7 @@
   box-shadow: 0 3px 6px rgba(0,0,0,0.4);
 }
 
-/* --- KARTALAR --- */
+/* --- KARTALAR VA YELPIG'ICH (FAN) DIZAYNI --- */
 .hand {
   display: flex;
   justify-content: center;
@@ -133,43 +133,101 @@
 /* O'zimizning kartalarimiz (Pastda) */
 .my-hand {
   position: absolute;
-  bottom: 10px;
+  bottom: 25px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  gap: -20px; /* Kartalar ustma-ust tushishi uchun */
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: center;
+  width: max-content;
+  perspective: 1000px;
 }
 
 .uno-card {
-  width: 65px;
-  height: 95px;
-  background: white;
+  width: 60px; /* Ekranga ko'proq sig'ishi uchun kichraytirildi */
+  height: 90px;
   border-radius: 8px;
   border: 3px solid white;
-  box-shadow: -2px 5px 10px rgba(0,0,0,0.4);
+  box-shadow: -3px 5px 10px rgba(0,0,0,0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 40px;
+  font-size: 35px;
   font-weight: 900;
-  margin-left: -25px; /* Kartalar yelpig'ichdek yopishishi uchun */
-  transition: transform 0.2s;
+  position: relative;
   cursor: pointer;
+  margin-left: -35px; /* Kartalar bir-birining ustiga ko'proq chiqishi uchun */
+  transition: transform 0.2s ease, margin 0.2s ease;
+  transform-origin: bottom center; /* Aylanish pastki o'qdan hisoblanadi */
+  overflow: hidden;
 }
-.uno-card:first-child { margin-left: 0; }
-.uno-card:hover { transform: translateY(-15px) scale(1.1); }
 
-/* Karta ranglari */
-.card-red { background: #ff0000; color: white; text-shadow: 2px 2px 0 #000; }
-.card-yellow { background: #ffaa00; color: white; text-shadow: 2px 2px 0 #000; }
-.card-green { background: #55aa00; color: white; text-shadow: 2px 2px 0 #000; }
-.card-blue { background: #0055ff; color: white; text-shadow: 2px 2px 0 #000; }
-.card-black { background: #222; color: white; }
+.uno-card:first-child { 
+  margin-left: 0; 
+}
+
+/* Hover effekti - kartani ushlaganda tepaga chiqishi */
+.uno-card:hover { 
+  transform: translateY(-20px) scale(1.15) !important; 
+  z-index: 50 !important;
+  margin-right: 15px; /* Yonidagi kartalarni biroz itaradi */
+}
+
+/* UNO kartalaridagi qiya oq ellips dizayni */
+.uno-card::before {
+  content: '';
+  position: absolute;
+  width: 85%;
+  height: 75%;
+  background: white;
+  border-radius: 50%;
+  transform: rotate(-25deg);
+  z-index: 1;
+}
+
+/* Raqam yoki belgi oq ellipsning ustida turishi uchun */
+.uno-card-value {
+  position: relative;
+  z-index: 2;
+  text-shadow: 1px 1px 0px rgba(0,0,0,0.2);
+}
+
+/* Ranglar va oq ellips ichidagi raqam ranglari */
+.card-red { background: #ff0000; }
+.card-red .uno-card-value { color: #ff0000; }
+
+.card-yellow { background: #ffaa00; }
+.card-yellow .uno-card-value { color: #ffaa00; }
+
+.card-green { background: #55aa00; }
+.card-green .uno-card-value { color: #55aa00; }
+
+.card-blue { background: #0055ff; }
+.card-blue .uno-card-value { color: #0055ff; }
+
+/* Qora kartalarda oq ellips bo'lmaydi, o'rniga rang-barang gradient bo'ladi */
+.card-black { 
+  background: #222; 
+  background-image: conic-gradient(#ff0000 90deg, #0055ff 90deg 180deg, #ffaa00 180deg 270deg, #55aa00 270deg);
+}
+.card-black::before { 
+  width: 60%;
+  height: 60%;
+  background: #222; 
+  border-radius: 50%;
+  transform: none;
+}
+.card-black .uno-card-value { 
+  color: white; 
+  font-size: 25px; 
+}
 
 /* Raqiblarning teskari kartalari */
-.opponent-hand-top .uno-card-back { width: 35px; height: 50px; margin-left: -15px; }
-.opponent-hand-left .uno-card-back { width: 35px; height: 50px; margin-top: -20px; transform: rotate(90deg); }
-.opponent-hand-right .uno-card-back { width: 35px; height: 50px; margin-top: -20px; transform: rotate(-90deg); }
+.opponent-hand-top .uno-card-back { width: 30px; height: 45px; margin-left: -15px; }
+.opponent-hand-left .uno-card-back { width: 30px; height: 45px; margin-top: -20px; transform: rotate(90deg); }
+.opponent-hand-right .uno-card-back { width: 30px; height: 45px; margin-top: -20px; transform: rotate(-90deg); }
 
 .uno-card-back {
   background: black;
@@ -189,34 +247,34 @@
 }
 
 .center-pile .uno-card {
-  width: 80px;
-  height: 120px;
+  width: 70px;
+  height: 105px;
   margin: 0;
-  font-size: 60px;
+  font-size: 45px;
 }
 
 .call-uno-btn {
   position: absolute;
   bottom: 80px;
-  right: 20px;
-  width: 70px;
-  height: 70px;
+  right: 15px;
+  width: 65px;
+  height: 65px;
   background: radial-gradient(circle, #ff4444 0%, #cc0000 100%);
-  border: 4px solid white;
+  border: 3px solid white;
   border-radius: 50%;
   color: white;
   font-weight: 900;
-  font-size: 16px;
-  box-shadow: 0 8px 0 #880000, 0 15px 20px rgba(0,0,0,0.5);
+  font-size: 14px;
+  box-shadow: 0 6px 0 #880000, 0 10px 15px rgba(0,0,0,0.5);
   z-index: 30;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  line-height: 1;
+  line-height: 1.1;
 }
 .call-uno-btn:active {
-  transform: translateY(8px);
+  transform: translateY(6px);
   box-shadow: 0 0px 0 #880000, 0 5px 10px rgba(0,0,0,0.5);
 }
