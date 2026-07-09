@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import './App.css'; // Yangi yozgan dizaynimizni ulash
-import { db } from './firebase';
+import './App.css'; 
+import ClassicMode from './ClassicMode'; // Yangi yozilgan Classic Mode komponentini ulaymiz
+import { db } from './firebase'; // Firebase bazasi kerak bo'lishi mumkin
 
 function App() {
   const [tgUser, setTgUser] = useState(null);
   const [activeView, setActiveView] = useState('lobby'); // 'lobby', 'classic', 'wild', 'friends'
 
   useEffect(() => {
+    // Telegram Web App SDK ni tekshirish va ishga tushirish
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
       tg.expand();
+      // O'yin foniga mos qilib Telegram sarlavhasi rangini yashil qilish
       tg.setHeaderColor('#1b5e20');
       tg.setBackgroundColor('#1b5e20');
+      
+      // Foydalanuvchi ma'lumotlarini olish
       if (tg.initDataUnsafe?.user) {
         setTgUser(tg.initDataUnsafe.user);
       }
@@ -21,11 +26,10 @@ function App() {
 
   // Rejim tanlanganda ishlaydigan funksiya
   const handleModeSelect = (mode) => {
-    // Hozircha bosilganda sahifa o'zgaradi. Keyinchalik shu yerga Firebase'dan xona ochish kodini yozamiz.
     setActiveView(mode);
   };
 
-  // Asosiy menyu (3 ta kartochka)
+  // Asosiy menyu (3 ta kartochka) UI
   const renderLobby = () => (
     <div className="modes-container">
       {/* 1. Classic Mode */}
@@ -57,29 +61,48 @@ function App() {
     </div>
   );
 
-  // Tanlangan o'yin stoli (Keyingi bosqichda shu yerni to'ldiramiz)
-  const renderGameRoom = () => (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h2>{activeView.toUpperCase()} MODE</h2>
-      <p>O'yin stoli yuklanmoqda...</p>
-      <button 
-        style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#fff', color: '#333', marginTop: '20px', fontWeight: 'bold' }}
-        onClick={() => setActiveView('lobby')}
-      >
-        Orqaga qaytish
-      </button>
-    </div>
-  );
+  // Tanlangan rejimga qarab tegishli komponentni ochish
+  const renderGameRoom = () => {
+    // Agar Classic bosilgan bo'lsa, alohida yaratgan faylimizni chaqiramiz
+    if (activeView === 'classic') {
+      return <ClassicMode tgUser={tgUser} onBack={() => setActiveView('lobby')} />;
+    }
+    
+    // Boshqa rejimlar uchun (Wild, Friends) vaqtincha ekran
+    return (
+      <div style={{ textAlign: 'center', marginTop: '50px' }}>
+        <h2>{activeView.toUpperCase()} MODE</h2>
+        <p>Bu rejim tez orada ishga tushadi...</p>
+        <button 
+          style={{ 
+            padding: '10px 20px', 
+            borderRadius: '10px', 
+            border: 'none', 
+            background: '#fff', 
+            color: '#333', 
+            marginTop: '20px', 
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+          onClick={() => setActiveView('lobby')}
+        >
+          Orqaga qaytish
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="uno-container">
-      {/* Har doim tepada turadigan qism */}
-      <div className="header-section">
-        <h1 className="uno-logo">UNO</h1>
-        <div className="user-badge">
-          {tgUser ? `👤 ${tgUser.first_name}` : '👤 Mehmon'}
+      {/* Har doim tepada turadigan qism (Agar menyuda bo'lsak ko'rinadi) */}
+      {activeView === 'lobby' && (
+        <div className="header-section">
+          <h1 className="uno-logo">UNO</h1>
+          <div className="user-badge">
+            {tgUser ? `👤 ${tgUser.first_name}` : '👤 Mehmon'}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Holatga qarab yo Menyu yoki O'yin stolini ko'rsatamiz */}
       {activeView === 'lobby' ? renderLobby() : renderGameRoom()}
