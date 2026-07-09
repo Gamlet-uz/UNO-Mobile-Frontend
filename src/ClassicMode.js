@@ -160,25 +160,39 @@ function ClassicMode({ tgUser, onBack }) {
         {centerCard && (
           <div className="center-pile">
             <div className={`uno-card ${getCardClass(centerCard.color)}`}>
-              {getCardDisplayValue(centerCard.value)}
+              {/* Oq ellipsni to'g'ri ishlashi uchun span qo'shildi */}
+              <span className="uno-card-value">{getCardDisplayValue(centerCard.value)}</span>
             </div>
           </div>
         )}
 
-        {/* O'zimizning HAQIQIY kartalarimiz */}
+        {/* O'zimizning HAQIQIY kartalarimiz (Yelpig'ich dizaynida) */}
         <div className="my-hand">
-          {myCards.map((card, index) => (
-            <div 
-              key={index} 
-              className={`uno-card ${getCardClass(card.color)}`}
-              style={{
-                transform: isMyTurn ? 'translateY(-10px)' : 'none', 
-                boxShadow: isMyTurn ? '0 0 15px rgba(255,255,255,0.5)' : 'none'
-              }}
-            >
-              {getCardDisplayValue(card.value)}
-            </div>
-          ))}
+          {myCards.map((card, index) => {
+            // Yelpig'ich effektini hisoblash
+            const totalCards = myCards.length;
+            const midPoint = (totalCards - 1) / 2;
+            const offset = index - midPoint; 
+            const angle = offset * 6; // Har bir karta 6 gradusga buriladi
+            const yTranslate = Math.abs(offset) * 3; // Chetkalar biroz pastga tushadi
+            
+            const turnBoost = isMyTurn ? -15 : 0; // Navbat kelganda hamma karta biroz tepaga chiqadi
+
+            return (
+              <div 
+                key={index} 
+                className={`uno-card ${getCardClass(card.color)}`}
+                style={{
+                  transform: `rotate(${angle}deg) translateY(${turnBoost + yTranslate}px)`, 
+                  zIndex: index, // O'ngdagi karta doim chapdagining ustiga chiqadi
+                  boxShadow: isMyTurn ? '0 0 10px rgba(255,255,255,0.3)' : '-3px 5px 10px rgba(0,0,0,0.5)'
+                }}
+              >
+                {/* Oq ellipsni to'g'ri ishlashi uchun span qo'shildi */}
+                <span className="uno-card-value">{getCardDisplayValue(card.value)}</span>
+              </div>
+            );
+          })}
         </div>
 
         {/* Navbat ko'rsatkichi */}
